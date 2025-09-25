@@ -1,0 +1,59 @@
+name: DevSecOps Pipeline
+
+on:
+  push:
+    branches: [ master ]  # Change to 'main' if your default branch is 'main'
+  pull_request:
+    branches: [ master ]  # Same as above
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: pip install -r app/requirements.txt
+
+    - name: Run SAST with Bandit
+      run: |
+        pip install bandit
+        bandit -r app/ -f txt -o bandit-report.txt || true  # Continue even if issues found
+
+    - name: Upload Bandit report
+      uses: actions/upload-artifact@v4
+      with:
+        name: bandit-report
+        path: bandit-report.txt
+
+    - name: Build Docker image
+      run: docker build -t todo-app .
+
+    - name: Scan Docker image with Trivy
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'todo-app'
+        format: 'table'
+        exit-code: '1'  # Fail on critical/high vulns
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'
+
+    - name: Run DAST with OWASP ZAP
+      if: github.event_name == 'push'  # Only run on push to avoid PR delays
+      run: |
+        docker run -d -p 5000:5000 todo-app
+        docker run --rm -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zap-stable zap-baseline.py -t http://localhost:5000 -r zap-report.html || true
+      continue-on-error: true  # Continue even if ZAP finds issues
+
+    - name: Upload ZAP report
+      uses: actions/upload-artifact@v4
+      with:
+        name: zap-report
+        path: zap-report.html
