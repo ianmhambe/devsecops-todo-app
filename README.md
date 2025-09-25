@@ -12,3 +12,6 @@ A simple Flask to-do app demonstrating DevSecOps practices.
 - **Platform**: Render
 - **URL**: https://todo-app-55yb.onrender.com/todos
 - **Security**: HTTPS enabled, automated deployments via GitHub Actions.
+### Security Features
+- Fixed `debug=True` vulnerability flagged by Bandit.
+- Added HTTP security headers: Content-Security-Policy, X-Content-Type-Options, X-Frame-Options.
