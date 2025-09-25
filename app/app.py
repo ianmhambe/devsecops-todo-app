@@ -15,4 +15,4 @@ def handle_todos():
     return jsonify(todos)
 
 if __name__ == '__main__':
-    app.run(debug=True)  # Intentionally insecure for demo; we'll fix later
+    app.run(debug=False)
