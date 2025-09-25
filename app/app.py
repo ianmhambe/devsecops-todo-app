@@ -1,8 +1,11 @@
-
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
-todos = []  # In-memory storage for simplicity
+todos = []
+
+@app.route('/')
+def home():
+    return jsonify({"message": "Welcome to the DevSecOps To-Do App! Use /todos to manage tasks."})
 
 @app.route('/todos', methods=['GET', 'POST'])
 def handle_todos():
@@ -15,4 +18,4 @@ def handle_todos():
     return jsonify(todos)
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)
