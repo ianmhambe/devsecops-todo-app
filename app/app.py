@@ -1,7 +1,14 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 
 app = Flask(__name__)
 todos = []
+
+@app.after_request
+def add_security_headers(response):
+    response.headers['Content-Security-Policy'] = "default-src 'self'"
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    return response
 
 @app.route('/')
 def home():
@@ -18,4 +25,4 @@ def handle_todos():
     return jsonify(todos)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)  # Fixed vulnerability
